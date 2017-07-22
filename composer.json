@@ -1,0 +1,8 @@
+{
+  "autoload": {
+    "psr-0": {
+      "Fabs\\Compiler": "src",
+      "Fabs\\Test": "test"
+    }
+  }
+}
