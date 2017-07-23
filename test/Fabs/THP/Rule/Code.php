@@ -12,6 +12,8 @@ class Code extends Rule
         parent::__construct(Rules::CODE);
         $this->setIsNode();
         $this->callRule(Rules::COMMAND_OR_COMMENT);
-        $this->callRule(Rules::COMMAND_OR_COMMENT, true, true);
+        $this->startBlock(true, true);
+        $this->callRule(Rules::COMMAND_OR_COMMENT);
+        $this->endBlock();
     }
 }

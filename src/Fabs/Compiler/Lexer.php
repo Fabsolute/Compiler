@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: fabsolutely
- * Date: 22/07/2017
- * Time: 21:19
- */
 
 namespace Fabs\Compiler;
 

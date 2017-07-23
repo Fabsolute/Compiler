@@ -14,6 +14,8 @@ class Rule
     protected $operation_list = [];
     /** @var bool */
     protected $is_node = false;
+    /** @var BlockOperation */
+    protected $current_block_operation = null;
 
     /**
      * Rule constructor.
@@ -60,19 +62,29 @@ class Rule
 
     public function startBlock($is_recursive = false, $is_optional = false)
     {
-        $operation = new Operation();
-        $operation->type = OperationTypes::START_BLOCK;
+        $operation = new BlockOperation();
+        $operation->type = OperationTypes::BLOCK_OPERATION;
         $operation->is_optional = $is_optional;
         $operation->is_recursive = $is_recursive;
+
+        if ($this->current_block_operation !== null) {
+            $operation->parent_operation = $this->current_block_operation;
+        }
+
+        $this->current_block_operation = $operation;
         $this->operation_list[] = $operation;
         return $this;
     }
 
     public function endBlock()
     {
-        $operation = new Operation();
-        $operation->type = OperationTypes::END_BLOCK;
-        $this->operation_list[] = $operation;
+        if ($this->current_block_operation !== null) {
+            if ($this->current_block_operation->parent_operation !== null) {
+                $this->current_block_operation = $this->current_block_operation->parent_operation;
+            } else {
+                $this->current_block_operation = null;
+            }
+        }
         return $this;
     }
 
@@ -80,7 +92,11 @@ class Rule
     {
         $operation = new Operation();
         $operation->type = OperationTypes::LOGICAL_OR;
-        $this->operation_list[] = $operation;
+        if ($this->current_block_operation === null) {
+            $this->operation_list[] = $operation;
+        } else {
+            $this->current_block_operation->operation_list[] = $operation;
+        }
         return $this;
     }
 
@@ -93,7 +109,11 @@ class Rule
         $operation = new Operation();
         $operation->type = OperationTypes::MATCH_TOKEN;
         $operation->value = $token_name;
-        $this->operation_list[] = $operation;
+        if ($this->current_block_operation === null) {
+            $this->operation_list[] = $operation;
+        } else {
+            $this->current_block_operation->operation_list[] = $operation;
+        }
         return $this;
     }
 
@@ -106,24 +126,30 @@ class Rule
         $operation = new Operation();
         $operation->type = OperationTypes::TAKE_TOKEN;
         $operation->value = $token_name;
-        $this->operation_list[] = $operation;
+        if ($this->current_block_operation === null) {
+            $this->operation_list[] = $operation;
+        } else {
+            $this->current_block_operation->operation_list[] = $operation;
+        }
         return $this;
     }
 
     /**
      * @param string $rule_name
-     * @param bool $is_recursive
-     * @param bool $is_optional
      * @return Rule
+     * @internal param bool $is_optional
+     * @internal param bool $is_recursive
      */
-    public function callRule($rule_name, $is_recursive = false, $is_optional = false)
+    public function callRule($rule_name)
     {
         $operation = new Operation();
         $operation->type = OperationTypes::CALL_RULE;
         $operation->value = $rule_name;
-        $operation->is_optional = $is_optional;
-        $operation->is_recursive = $is_recursive;
-        $this->operation_list[] = $operation;
+        if ($this->current_block_operation === null) {
+            $this->operation_list[] = $operation;
+        } else {
+            $this->current_block_operation->operation_list[] = $operation;
+        }
         return $this;
     }
 }
