@@ -16,19 +16,23 @@ abstract class Lexer
     /**
      * @param string $name
      * @param string $regex
+     * @param bool $should_ignore
      * @return Lexer
      */
-    protected function defineToken($name, $regex)
+    protected function defineToken($name, $regex, $should_ignore = false)
     {
         $token_definition = new TokenDefinition();
         $token_definition->name = $name;
         $token_definition->regex = $regex;
+        $token_definition->should_ignore = $should_ignore;
         $this->token_definition_list[] = $token_definition;
         return $this;
     }
 
     /**
+     * @param string $code
      * @return Token[]
+     * @throws \Exception
      */
     public function getTokens($code)
     {
@@ -40,24 +44,33 @@ abstract class Lexer
         while ($current_point < $end_point) {
             $token = $this->nextToken($code, $current_point);
             if ($token !== null) {
-                if ($token->name !== 'skip') { //todo
+                if ($token->name !== '__ignore__this__token__') {
                     $tokens[] = $token;
                 }
                 $current_point += strlen($token->value);
             } else {
-                die('wtf');
+                throw new \Exception('token could not match');//todo
             }
         }
 
         return $tokens;
     }
 
-    protected function nextToken($code, $offset)
+    /**
+     * @param string $code
+     * @param int $current_point
+     * @return Token|null
+     */
+    protected function nextToken($code, $current_point)
     {
         foreach ($this->token_definition_list as $token_definition) {
-            $token = $this->matchToken($code, $token_definition->regex, $offset);
+            $token = $this->matchToken($code, $token_definition->regex, $current_point);
             if ($token != null) {
-                $token->name = $token_definition->name;
+                if ($token_definition->should_ignore === false) {
+                    $token->name = $token_definition->name;
+                } else {
+                    $token->name = '__ignore__this__token__';
+                }
                 return $token;
             }
         }
@@ -66,6 +79,7 @@ abstract class Lexer
     }
 
     /**
+     * @param string $code
      * @param string $regex
      * @param int $current_point
      * @return Token|null
