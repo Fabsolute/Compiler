@@ -8,10 +8,7 @@ use Fabs\Compiler\Parser;
 use Fabs\THP\Rule\ArrayAccess;
 use Fabs\THP\Rule\ArrayDeclaration;
 use Fabs\THP\Rule\Chain;
-use Fabs\THP\Rule\Code;
-use Fabs\THP\Rule\CommandOrComment;
 use Fabs\THP\Rule\Command;
-use Fabs\THP\Rule\Comment;
 use Fabs\THP\Rule\Constant;
 use Fabs\THP\Rule\Equality;
 use Fabs\THP\Rule\Expression;
@@ -36,12 +33,10 @@ class PHPParser extends Parser
     public function __construct()
     {
         $this->addRule(THP::class);
-        $this->addRule(Code::class);
         $this->addRule(Chain::class);
         $this->addRule(Using::class);
         $this->addRule(Value::class);
         $this->addRule(Operand::class);
-        $this->addRule(Comment::class);
         $this->addRule(Command::class);
         $this->addRule(Equality::class);
         $this->addRule(Constant::class);
@@ -54,7 +49,6 @@ class PHPParser extends Parser
         $this->addRule(FunctionCall::class);
         $this->addRule(ObjectAccess::class);
         $this->addRule(ArrayDeclaration::class);
-        $this->addRule(CommandOrComment::class);
         $this->addRule(ObjectDeclaration::class);
         $this->addRule(StaticClassAccess::class);
         $this->addRule(NamespaceIdentifier::class);

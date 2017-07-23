@@ -13,7 +13,6 @@ class Rules
     const CHAIN = 'chain';
     const OPERAND = 'operand';
     const COMMAND = 'command';
-    const COMMENT = 'comment';
     const CONSTANT = 'constant';
     const EQUALITY = 'equality';
     const VARIABLE = 'variable';
@@ -26,7 +25,6 @@ class Rules
     const FUNCTION_CALL = 'function_call';
     const ARRAY_DECLARATION = 'array_declaration';
     const OBJECT_DECLARATION = 'object_declaration';
-    const COMMAND_OR_COMMENT = 'command_or_comment';
     const STATIC_CLASS_ACCESS = 'static_class_access';
     const NAMESPACE_IDENTIFIER = 'namespace_identifier';
     const LOGICAL_OPERATION_PRIMARY = 'logical_operation_primary';

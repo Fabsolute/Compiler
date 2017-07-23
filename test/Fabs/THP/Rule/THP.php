@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: ahmetturk
- * Date: 23/07/2017
- * Time: 09:32
- */
 
 namespace Fabs\THP\Rule;
 
@@ -21,6 +15,9 @@ class THP extends Rule
 
         $this->setIsNode();
         $this->matchToken(Tokens::THP);
-        $this->callRule(Rules::CODE);
+        $this->callRule(Rules::COMMAND);
+        $this->startBlock(true, true);
+        $this->callRule(Rules::COMMAND);
+        $this->endBlock();
     }
 }

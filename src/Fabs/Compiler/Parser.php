@@ -35,6 +35,8 @@ abstract class Parser
         $token_list = $lexer->getTokens($code);
         $first_rule = $this->rule_list[0];
 
+        return $token_list;
+
         return $this->rule_list;
 
         return $this->execute($first_rule, $token_list);
