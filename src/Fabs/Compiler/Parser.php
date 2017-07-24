@@ -8,6 +8,8 @@ abstract class Parser
 {
     /** @var Rule[] */
     protected $rule_list = [];
+    /** @var Token[] */
+    protected $token_list = [];
 
     private $current_point = 0;
 
@@ -23,10 +25,13 @@ abstract class Parser
             throw new \Exception('any rule required');
         }
 
-        $token_list = $lexer->getTokens($code);
+        $this->token_list = $lexer->getTokens($code);
         $first_rule = $this->rule_list[0];
+//        echo '<pre>';
+//        var_export($this->rule_list);
+//        exit;
 
-        return $this->execute($first_rule, $token_list);
+        return $this->execute($first_rule);
     }
 
     public function getRuleList()
@@ -55,74 +60,83 @@ abstract class Parser
 
     /**
      * @param Rule $rule
-     * @param Token[] $token_list
      * @return string
-     * @internal param int $current_point
      */
-    private function execute($rule, $token_list)
+    private function execute($rule)
     {
+        if ($this->current_point >= count($this->token_list)) {
+            return false;
+        }
+
+//        static $REMOVE_counter = 0;
+
+//        $REMOVE_counter++;
+
+//
+//        $REMOVE_counter--;
+//
+//
+//        if ($response === true && $rule->getIsNode()) {
+//            $REMOVE_out = str_repeat('│', $REMOVE_counter) . '├' . $rule->getName() . "\n";
+//            echo $REMOVE_out . '<br>';
+//        }
+
         $operation_list = $rule->getOperationList();
-        $response = $this->safeCheckOperations($operation_list, $token_list);
-        var_dump('rule: ' . $rule->getName(), $response);
+        $response = $this->safeCheckOperations($operation_list);
         return $response;
     }
 
     /**
      * @param $operation_list
-     * @param Token[] $token_list
      * @return bool
      */
-    private function checkOperations($operation_list, $token_list)
+    private function checkOperations($operation_list)
     {
         $split_operation_list = $this->splitOperations($operation_list);
 
         if (count($split_operation_list) !== 1) {
-
-//            var_dump('split list', $split_operation_list,'split end');
             foreach ($split_operation_list as $new_operation_list) {
-                $response = $this->safeCheckOperations($new_operation_list, $token_list);
-                if ($response === true) {
-                    return true;
+                $response = $this->safeCheckOperations($new_operation_list);
+                if ($response !== null) {
+                    return $response;
                 }
             }
-            return false;
+            return null;
         }
 
         foreach ($operation_list as $operation) {
             switch ($operation->type) {
                 case OperationTypes::MATCH_TOKEN:
-                    if ($operation->value !== $token_list[$this->current_point]->name) {
-                        return false;
+                    $current_rule = $this->getCurrentRule();
+                    if ($current_rule === null) {
+                        return null;//todo wtf
                     }
-                    echo 'token matched : ' . $operation->value . PHP_EOL;
+                    if ($operation->value !== $current_rule->name) {
+                        return null;
+                    }
                     $this->current_point++;
                     break;
                 case OperationTypes::CALL_RULE:
                     $selected_rule = $this->rule_list[$operation->value];//todo rule not found
-                    $response = $this->execute($selected_rule, $token_list);
+                    $response = $this->execute($selected_rule);
                     if ($response === false) {
                         return false;
                     }
                     break;
                 case OperationTypes::TAKE_TOKEN:
-                    if ($operation->value !== $token_list[$this->current_point]->name) {
-                        echo 'wtf! current_point: '
-                            . $this->current_point
-                            . ' expected: '
-                            . $operation->value
-                            . ' found '
-                            . $token_list[$this->current_point]->name
-                            . PHP_EOL;
-
+                    $current_rule = $this->getCurrentRule();
+                    if ($current_rule === null) {
                         return false;
                     }
-                    echo 'token taked : ' . $operation->value . ' value: ' . $token_list[$this->current_point]->value . ' on current_point ' . $this->current_point . PHP_EOL;
+                    if ($operation->value !== $current_rule->name) {
+                        return false;
+                    }
                     $this->current_point++;
                     //todo take token
                     break;
                 case OperationTypes::BLOCK_OPERATION:
                     /** @var BlockOperation $operation */
-                    $response = $this->safeCheckOperations($operation->operation_list, $token_list);
+                    $response = $this->safeCheckOperations($operation->operation_list);
                     if ($response === false) {
                         if ($operation->is_optional !== true) {
                             return false;
@@ -156,14 +170,25 @@ abstract class Parser
         return $split_operation_list;
     }
 
-    private function safeCheckOperations($operation_list, $token_list)
+    private function safeCheckOperations($operation_list)
     {
         $before_point = $this->current_point;
-        $response = $this->checkOperations($operation_list, $token_list);
+        $response = $this->checkOperations($operation_list);
         if ($response === false) {
             $this->current_point = $before_point;
         }
 
         return $response;
+    }
+
+    /**
+     * @return Token
+     */
+    private function getCurrentRule()
+    {
+        if ($this->current_point >= count($this->token_list)) {
+            return null;
+        }
+        return $this->token_list[$this->current_point];
     }
 }

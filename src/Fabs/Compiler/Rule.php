@@ -69,10 +69,12 @@ class Rule
 
         if ($this->current_block_operation !== null) {
             $operation->parent_operation = $this->current_block_operation;
+            $operation->parent_operation->operation_list[] = $operation;
+        } else {
+            $this->operation_list[] = $operation;
         }
 
         $this->current_block_operation = $operation;
-        $this->operation_list[] = $operation;
         return $this;
     }
 

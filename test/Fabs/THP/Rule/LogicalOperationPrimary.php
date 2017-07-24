@@ -14,12 +14,21 @@ class LogicalOperationPrimary extends Rule
     {
         parent::__construct(Rules::LOGICAL_OPERATION_PRIMARY);
         $this->callRule(Rules::LOGICAL_OPERATION_SECONDARY);
+
         $this->startBlock(false, true);
+
         $this->startBlock();
+
+        $this->matchToken(Tokens::XXXXXXXXXX);
         $this->matchToken(Tokens::LOGICAL_OR);
+
         $this->logicalOR();
+
+        $this->matchToken(Tokens::XXXXXXXXXX);
         $this->matchToken(Tokens::LOGICAL_XOR);
         $this->endBlock();
+
+        $this->matchToken(Tokens::XXXXXXXXXX);
         $this->callRule(Rules::LOGICAL_OPERATION_PRIMARY);
         $this->endBlock();
     }

@@ -11,11 +11,9 @@ class Operand extends Rule
     public function __construct()
     {
         parent::__construct(Rules::OPERAND);
-        $this->startBlock();
         $this->matchToken(Tokens::LEFT_PARENTHESIS);
         $this->callRule(Rules::LOGICAL_OPERATION_PRIMARY);
         $this->matchToken(Tokens::RIGHT_PARENTHESIS);
-        $this->endBlock();
         $this->logicalOR();
         $this->callRule(Rules::VALUE);
     }

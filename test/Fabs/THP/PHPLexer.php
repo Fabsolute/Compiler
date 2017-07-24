@@ -43,5 +43,6 @@ class PHPLexer extends Lexer
         $this->defineToken(Tokens::LOGICAL_XOR, '(?i)xor\b');
         $this->defineToken(Tokens::FLOAT, '\d+\.\d+');
         $this->defineToken(Tokens::INTEGER, '\d+');
+        $this->defineToken(Tokens::XXXXXXXXXX, 'xxxxxxxxxxxxx');
     }
 }

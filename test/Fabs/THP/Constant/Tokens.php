@@ -38,4 +38,5 @@ class Tokens
     const LOGICAL_XOR = 'logical_xor';
     const FLOAT = 'float';
     const INTEGER = 'integer';
+    const XXXXXXXXXX = 'xxxxx';
 }
