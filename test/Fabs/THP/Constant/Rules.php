@@ -8,7 +8,7 @@ class Rules
 {
     const THP = 'thp';
     const CODE = 'code';
-    const USING = 'use';
+    const USING = 'using';
     const VALUE = 'value';
     const CHAIN = 'chain';
     const OPERAND = 'operand';
