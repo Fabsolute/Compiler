@@ -11,6 +11,8 @@ abstract class Parser
     /** @var Token[] */
     protected $token_list = [];
 
+    public $tree = [];
+
     private $current_point = 0;
 
     /**
@@ -82,7 +84,7 @@ abstract class Parser
 //        }
 
         $operation_list = $rule->getOperationList();
-        $response = $this->safeCheckOperations($operation_list);
+        $response = $this->safeCheckOperations($operation_list, $rule);
         return $response;
     }
 
@@ -97,22 +99,22 @@ abstract class Parser
         if (count($split_operation_list) !== 1) {
             foreach ($split_operation_list as $new_operation_list) {
                 $response = $this->safeCheckOperations($new_operation_list);
-                if ($response !== null) {
-                    return $response;
+                if ($response === true) {
+                    return true;
                 }
             }
-            return null;
+            return false;
         }
 
         foreach ($operation_list as $operation) {
             switch ($operation->type) {
                 case OperationTypes::MATCH_TOKEN:
-                    $current_rule = $this->getCurrentRule();
-                    if ($current_rule === null) {
-                        return null;//todo wtf
+                    $current_token = $this->getCurrentToken();
+                    if ($current_token === null) {
+                        return false;//todo wtf
                     }
-                    if ($operation->value !== $current_rule->name) {
-                        return null;
+                    if ($operation->value !== $current_token->name) {
+                        return false;
                     }
                     $this->current_point++;
                     break;
@@ -124,13 +126,14 @@ abstract class Parser
                     }
                     break;
                 case OperationTypes::TAKE_TOKEN:
-                    $current_rule = $this->getCurrentRule();
-                    if ($current_rule === null) {
+                    $current_token = $this->getCurrentToken();
+                    if ($current_token === false) {
                         return false;
                     }
-                    if ($operation->value !== $current_rule->name) {
+                    if ($operation->value !== $current_token->name) {
                         return false;
                     }
+                    $this->tree[] = $this->getCurrentToken();
                     $this->current_point++;
                     //todo take token
                     break;
@@ -170,12 +173,26 @@ abstract class Parser
         return $split_operation_list;
     }
 
-    private function safeCheckOperations($operation_list)
+    /**
+     * @param $operation_list
+     * @param Rule $rule
+     * @return bool
+     */
+    private function safeCheckOperations($operation_list, $rule = null)
     {
         $before_point = $this->current_point;
+        $before_tree = $this->tree;
+
+        if ($rule != null) {
+            if ($rule->getIsNode() === true) {
+                $this->tree[] = $rule;
+            }
+        }
+
         $response = $this->checkOperations($operation_list);
         if ($response === false) {
             $this->current_point = $before_point;
+            $this->tree = $before_tree;
         }
 
         return $response;
@@ -184,7 +201,7 @@ abstract class Parser
     /**
      * @return Token
      */
-    private function getCurrentRule()
+    private function getCurrentToken()
     {
         if ($this->current_point >= count($this->token_list)) {
             return null;

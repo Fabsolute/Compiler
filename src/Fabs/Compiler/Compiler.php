@@ -25,7 +25,7 @@ abstract class Compiler
         $parser_class = $this->getParserClass();
         /** @var Parser $parser */
         $parser = new $parser_class();
-
-        return $parser->parse($code, $lexer);
+        $parser->parse($code, $lexer);
+        return $parser->tree;
     }
 }
