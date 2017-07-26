@@ -1,14 +1,15 @@
 <?php
 $a = true;
-//$a = true;
-//$a = true;
-//$a = true;
+$a = true;
+$a = true;
+$a = true;
+$b=abo;
 
 // sa
 // sa
 // comment yazdik
-//define(BASE_PATH, dirname(__DIR__));
 
+define(BASE_PATH, dirname(__DIR__));
 //buralari okuma gardash
 //use THP\Compiler\Compiler;
 

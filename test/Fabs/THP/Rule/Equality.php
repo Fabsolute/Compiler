@@ -19,7 +19,7 @@ class Equality extends Rule
         $this->startBlock();
         $this->callRule(Rules::STATIC_CLASS_ACCESS);
         $this->logicalOR();
-        $this->callRule(Rules::EXPRESSION);
+        $this->callRule(Rules::LOGICAL_OPERATION_PRIMARY);
         $this->endBlock();
     }
 }

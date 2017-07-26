@@ -11,9 +11,11 @@ abstract class Parser
     /** @var Token[] */
     protected $token_list = [];
 
-    public $tree = [];
+    private $collected_tokens = [];
 
     private $current_point = 0;
+    /** @var Node */
+    private $tree = null;
 
     /**
      * @param string $code
@@ -33,7 +35,12 @@ abstract class Parser
 //        var_export($this->rule_list);
 //        exit;
 
-        return $this->execute($first_rule);
+        $status = $this->execute($first_rule);
+        if ($status) {
+            return $this->buildTree();
+        } else {
+            return false;
+        }
     }
 
     public function getRuleList()
@@ -133,13 +140,16 @@ abstract class Parser
                     if ($operation->value !== $current_token->name) {
                         return false;
                     }
-                    $this->tree[] = $this->getCurrentToken();
+                    $this->collected_tokens[] = ['type' => 'token', 'content' => $this->getCurrentToken()];
                     $this->current_point++;
                     //todo take token
                     break;
                 case OperationTypes::BLOCK_OPERATION:
-                    /** @var BlockOperation $operation */
-                    $response = $this->safeCheckOperations($operation->operation_list);
+                    do {
+                        /** @var BlockOperation $operation */
+                        $response = $this->safeCheckOperations($operation->operation_list);
+                    } while ($response !== false && $operation->is_recursive);
+
                     if ($response === false) {
                         if ($operation->is_optional !== true) {
                             return false;
@@ -181,18 +191,25 @@ abstract class Parser
     private function safeCheckOperations($operation_list, $rule = null)
     {
         $before_point = $this->current_point;
-        $before_tree = $this->tree;
+        $before_tree = $this->collected_tokens;
 
         if ($rule != null) {
             if ($rule->getIsNode() === true) {
-                $this->tree[] = $rule;
+                $this->collected_tokens[] = ['content' => $rule, 'type' => 'rule_start'];
             }
         }
 
         $response = $this->checkOperations($operation_list);
+
+        if ($rule != null) {
+            if ($rule->getIsNode() === true) {
+                $this->collected_tokens[] = ['content' => $rule, 'type' => 'rule_end'];
+            }
+        }
+
         if ($response === false) {
             $this->current_point = $before_point;
-            $this->tree = $before_tree;
+            $this->collected_tokens = $before_tree;
         }
 
         return $response;
@@ -207,5 +224,40 @@ abstract class Parser
             return null;
         }
         return $this->token_list[$this->current_point];
+    }
+
+    private function buildTree()
+    {
+        $this->tree = new Node();
+        /** @var Node $selected_node */
+        $selected_node = null;
+
+        foreach ($this->collected_tokens as $state) {
+            if ($state['type'] === 'rule_start') {
+                if ($selected_node !== null) {
+                    $node = new Node();
+                    $node->parent = $selected_node;
+                    $selected_node->children[] = $node;
+                } else {
+                    $node = $this->tree;
+                }
+
+                $node->self = $state['content'];
+                $selected_node = $node;
+            } elseif ($state['type'] === 'rule_end') {
+                $selected_node = $selected_node->parent;
+            } elseif ($state['type'] === 'token') {
+                $node = new Node();
+                $node->self = $state['content'];
+                $selected_node->children[] = $node;
+            }
+        }
+        return $this->showTree();
+    }
+
+
+    public function showTree()
+    {
+        return (string)$this->tree;
     }
 }
